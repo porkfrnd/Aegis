@@ -1,0 +1,6 @@
+discord.py
+openai
+duckduckgo_search
+aiohttp
+supabase
+huggingface_hub
