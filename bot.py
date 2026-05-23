@@ -4,6 +4,8 @@ import asyncio
 import random
 import aiohttp
 import base64
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from openai import OpenAI
 import discord
 from discord.ext import commands
@@ -34,6 +36,28 @@ intents = discord.Intents.default()
 intents.message_content = True  
 intents.members = True 
 bot = commands.Bot(command_prefix="!", intents=intents)
+
+# ====================================================================
+# RENDER FREE TIER KEEP-ALIVE WEB SERVER
+# ====================================================================
+class KeepAliveHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-type", "text/plain")
+        self.end_headers()
+        self.wfile.write(b"Aegis Core Protocol Operational.")
+        
+    def log_message(self, format, *args):
+        return # Suppress connection spam logs in the console
+
+def run_web_server():
+    # Render binds web services to port 10000 by default
+    port = int(os.getenv("PORT", 10000))
+    server = HTTPServer(('0.0.0.0', port), KeepAliveHandler)
+    server.serve_forever()
+
+# Spin server off in a daemon thread so it doesn't halt the Discord client execution loop
+threading.Thread(target=run_web_server, daemon=True).start()
 
 # ====================================================================
 # PERMANENTLY FREE TRANSLATION ENGINE
@@ -122,6 +146,7 @@ async def on_ready():
     print(f"=========================================")
     print(f" SYSTEM SECURE: {BOT_NAME} PROTOCOL CORE ")
     print(f" HF Voice Processing Matrix: STABLE     ")
+    print(f" Keep-Alive Web Server Port: ACTIVE     ")
     print(f"=========================================\n")
 
 @bot.event
